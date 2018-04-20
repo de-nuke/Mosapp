@@ -104,4 +104,4 @@ ENV/
 .idea/
 
 #node_modules
-./vueappjs/node_modules
+./vue/node_modules
