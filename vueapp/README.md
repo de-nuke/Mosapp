@@ -1,4 +1,4 @@
-# mosaic-front
+# vueapp
 
 > A Vue.js project
 

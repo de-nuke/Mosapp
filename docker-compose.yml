@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./django/Dockerfile
+    command: python mozapp/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./django:/code
+    ports:
+      - "8000:8000"
+  vue:
+      build:
+        context: .
+        dockerfile: ./vueapp/Dockerfile
+      command: npm run dev
+      volumes:
+        - ./vueapp:/code
+        - nodemodules:/code/node_modules
+      ports:
+        - "8080:8080"
+volumes:
+  nodemodules:
+    driver: local
