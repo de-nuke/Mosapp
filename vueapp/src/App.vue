@@ -1,7 +1,13 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <router-view/>
+    <el-container>
+      <el-header></el-header>
+      <el-main>
+        <router-view/>
+      </el-main>
+    </el-container>
+    <!--<img src="./assets/logo.png">-->
+
   </div>
 </template>
 

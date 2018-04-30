@@ -49,7 +49,7 @@
         uploadedFiles: [],
         uploadError: null,
         currentStatus: null,
-        uploadFieldName: 'photos'
+        uploadFieldName: 'photo'
       }
     },
     computed: {
@@ -79,6 +79,7 @@
 
         upload(formData)
           .then(x => {
+
             this.uploadedFiles = [].concat(x);
             this.currentStatus = STATUS_SUCCESS;
           })
@@ -125,7 +126,7 @@
 
   .input-file {
     opacity: 0; /* invisible but it's there! */
-    width: 100%;
+    /*width: 100%;*/
     height: 200px;
     position: absolute;
     cursor: pointer;

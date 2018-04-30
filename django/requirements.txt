@@ -1,4 +1,6 @@
 Django==2.0.4
 Pillow==5.1.0
 djangorestframework
+django-cors-headers
 markdown
+numpy
