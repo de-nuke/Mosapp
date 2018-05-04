@@ -1,6 +1,6 @@
 from django.core.files.base import ContentFile
 from io import BytesIO
-from .constants import *
+from .default_values_contants import *
 import os.path
 from PIL.Image import ANTIALIAS
 

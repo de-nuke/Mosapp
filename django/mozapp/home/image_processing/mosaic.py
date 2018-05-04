@@ -4,7 +4,7 @@ import numpy as np
 from django.core.files.storage import FileSystemStorage
 import random
 from .utils import to_django_file, resize
-from .constants import *
+from .default_values_contants import *
 from .effects import apply_effects
 
 
@@ -68,16 +68,20 @@ def split_image(image, dims, sizes):
     return imgs
 
 
-def get_default_sizes(img, col_num, row_num, option=SQUARE_TILE):
+def get_default_sizes(img, col_num, row_num, _option=None, _square_tile_size=None, _tiles_per_image_dimension=None):
+    square_tile_size = _square_tile_size or DEFAULT_SQUARE_TILE_SIZE
+    option = _option or DEFAULT_OPTION
+    tiles_per_image_dimension = _tiles_per_image_dimension or DEFAULT_TILES_PER_IMAGE_DIMENSION
+
     if option == SQUARE_TILE:
         if not col_num and not row_num:
-            c = img.size[0] // DEFAULT_SQUARE_TILE_SIZE
-            r = img.size[1] // DEFAULT_SQUARE_TILE_SIZE
-            if img.size[0] % DEFAULT_SQUARE_TILE_SIZE:
+            c = img.size[0] // square_tile_size
+            r = img.size[1] // square_tile_size
+            if img.size[0] % square_tile_size:
                 c += 1
-            if img.size[1] % DEFAULT_SQUARE_TILE_SIZE:
+            if img.size[1] % square_tile_size:
                 r += 1
-            return (c, r), (DEFAULT_SQUARE_TILE_SIZE, DEFAULT_SQUARE_TILE_SIZE)
+            return (c, r), (square_tile_size, square_tile_size)
         elif not col_num and row_num:
             h = img.size[1] // row_num
             return (img.size[0] // h, row_num), (h, h)
@@ -88,8 +92,8 @@ def get_default_sizes(img, col_num, row_num, option=SQUARE_TILE):
             return (col_num, row_num), (img.size[0] // col_num, img.size[1] // row_num)
     if option == TILE_AS_MAIN_IMAGE:
         if not col_num and not row_num:
-            return ((TILES_PER_IMAGE_DIMENSION, TILES_PER_IMAGE_DIMENSION),
-                    (img.size[0] // TILES_PER_IMAGE_DIMENSION, img.size[1] // TILES_PER_IMAGE_DIMENSION))
+            return ((tiles_per_image_dimension, tiles_per_image_dimension),
+                    (img.size[0] // tiles_per_image_dimension, img.size[1] // tiles_per_image_dimension))
         elif not (col_num and row_num):
             return ((col_num or row_num, col_num or row_num),
                     (img.size[0] // (col_num or row_num), img.size[0] // (col_num or row_num)))
@@ -136,19 +140,30 @@ def create_image_grid(images, dims, tile_size, output_size):
 
 
 def create_mosaic(image, **kwargs):
-    option = kwargs.get('tile_style', SQUARE_TILE)
-    col_num = kwargs.get('columns_number', COLUMNS_NUMBER)
-    row_num = kwargs.get('rows_number', ROWS_NUMBER)
-    name = kwargs.get('name', NAME)
-    image_format = kwargs.get('image_format', IMAGE_FORMAT)
+    option = int(kwargs.get('tile_style', SQUARE_TILE))
+    col_num = kwargs.get('columns_number', DEFAULT_COLUMNS_NUMBER)
+    row_num = kwargs.get('rows_number', DEFAULT_ROWS_NUMBER)
+    name = kwargs.get('name', DEFAULT_NAME)
+    image_format = kwargs.get('image_format', DEFAULT_IMAGE_FORMAT)
     apply_greyscale = kwargs.get('apply_greyscale', APPLY_GREYSCALE)
     apply_sepia = kwargs.get('apply_sepia', APPLY_SEPIA)
     use_builtin_tile_images = kwargs.get('use_builtin_tile_images', USE_BUILTIN_TILE_IMAGES)
+    square_tile_size = kwargs.get('square_size', DEFAULT_SQUARE_TILE_SIZE)
+    tiles_per_image_dimension = kwargs.get('tiles_per_image_dimension', DEFAULT_TILES_PER_IMAGE_DIMENSION)
+
+    # TODO: jeszcze jakies ?
 
     img = Image.open(image)
     img = apply_effects(img, apply_sepia=apply_sepia, apply_greyscale=apply_greyscale)
 
-    dims, sizes = get_default_sizes(img, col_num, row_num, option=option)
+    dims, sizes = get_default_sizes(
+        img=img,
+        col_num=col_num,
+        row_num=row_num,
+        _option=option,
+        _square_tile_size=square_tile_size,
+        _tiles_per_image_dimension=tiles_per_image_dimension
+    )
 
     target_images = split_image(img, dims, sizes)
 
@@ -158,6 +173,7 @@ def create_mosaic(image, **kwargs):
         tile_images = get_user_images()
 
     for i in range(len(tile_images)):
+        tile_images[i] = apply_effects(tile_images[i], apply_sepia=apply_sepia, apply_greyscale=apply_greyscale)
         tile_images[i] = resize(tile_images[i], sizes, option=option)
 
     tile_images_infos = [get_image_info(img) for img in tile_images]

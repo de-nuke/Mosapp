@@ -9,18 +9,11 @@ from .models import MainImage
 def process_image(request, *args, **kwargs):
     form = ImageUploadForm(request.POST, request.FILES or None)
     if form.is_valid():
-        image = form.cleaned_data['image']
-        apply_sepia = form.cleaned_data['apply_sepia']
-        # vertical_tiles_number = form.cleaned_data['vertical_tiles_number']
-        print('starting creating mosaic')
-        # TODO: Pobieranie parametrów z requesta
         # TODO: 3 opcje: efekt na koniec, efekt na wejsciowy obraz i kafelki, efekt na wejsciowy obraz tylko
         # TODO: Enlargement - powiększanie obrazka, żeby kafelki były lepiej widoczne
         # TODO: KDTree.
 
-        mosaic_image = create_mosaic(
-            image=image,
-        )
+        mosaic_image = create_mosaic(**form.cleaned_data)
         print('finished mosaic')
         MainImage.objects.create(photo=mosaic_image)
         print('saved image to database')
