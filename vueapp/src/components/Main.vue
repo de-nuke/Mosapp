@@ -169,9 +169,9 @@
               });
               upload(formData).then(r => {
                 console.log(r);
-//                loading.close();
+                loading.close();
               }).catch(e => {
-//                loading.close();
+                loading.close();
                 console.log(e);
               })
           } else {
