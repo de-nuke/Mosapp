@@ -13,7 +13,7 @@ export default new Router({
       component: Main
     },
     {
-      path: '/preview',
+      path: '/preview/:id',
       name: 'Preview',
       component: Preview,
       props: true,

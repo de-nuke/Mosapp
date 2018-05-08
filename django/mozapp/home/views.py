@@ -14,10 +14,11 @@ def process_image(request, *args, **kwargs):
         # TODO: KDTree.
 
         mosaic_image = create_mosaic(**form.cleaned_data)
-        print('finished mosaic')
-        MainImage.objects.create(photo=mosaic_image)
-        print('saved image to database')
-        return JsonResponse({'git': 'gud'})
+        obj = MainImage.objects.create(photo=mosaic_image)
+        return JsonResponse({
+            'pk': obj.pk,
+            'src': obj.photo.url
+        }, status=201)
     else:
         print(form.errors)
         return JsonResponse(form.errors, status=400)

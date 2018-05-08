@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!--<router-link to="/preview/2">preview page</router-link>-->
     <el-row class="step">
       <el-col><span style="color:#909399;">Step 1. Choose image and settings</span></el-col>
     </el-row>
@@ -169,7 +170,10 @@
               });
               upload(formData).then(r => {
                 console.log(r);
+                let data = r.data;
                 loading.close();
+                console.log(data['pk']);
+                this.$router.push({name: 'Preview', params: {id: data['pk']}});
               }).catch(e => {
                 loading.close();
                 console.log(e);

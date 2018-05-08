@@ -10,7 +10,7 @@
             <span style="color: #409EFF">Preview</span>
           </div>
           <!--<img width="100%" height="100%" src="https://c1.staticflickr.com/8/7378/13997705508_a218e00c81_b.jpg">-->
-          <img width="100%" height="100%" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzs21eHt5Z9T1EjYd58xNeCqtorkKsKbudaJ1KBfSiF56U52ejdQ">
+          <img width="100%" height="100%" v-if="imageUrl.length" :src="imageUrl">
         </el-card>
       </el-col>
       <el-col :span="9">
@@ -18,7 +18,16 @@
           <div slot="header" class="clearfix">
             <span style="color: #409EFF;">Options</span>
           </div>
-          <el-button type="success">Download</el-button>
+          <el-row class="button-row" type="flex" justify="center">
+            <el-col :span="6">
+              <el-button style="width: 100%" type="success" >Download</el-button>
+            </el-col>
+          </el-row>
+          <el-row class="button-row"  type="flex" justify="center">
+            <el-col :span="6">
+              <el-button style="width: 100%" type="primary" >Start again</el-button>
+            </el-col>
+          </el-row>
         </el-card>
       </el-col>
     </el-row>
@@ -30,11 +39,16 @@
 
   export default Vue.extend({
     name: 'Preview',
+    props: ['id'],
     data() {
       return {
-
+        imageUrl: "",
       }
     },
+
+    created: function () {
+
+    }
   })
 </script>
 
@@ -43,4 +57,11 @@
 .step {
   margin-bottom:20px;
 }
+.button-row {
+  margin-bottom: 20px;
+  &:last-child {
+    margin-bottom: 0px;
+   }
+}
+
 </style>
