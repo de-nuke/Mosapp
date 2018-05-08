@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
-import ImageSettings from '@/components/ImageSettings'
+import Preview from '@/components/Preview'
 import Main from '@/components/Main'
 
 Vue.use(Router);
@@ -14,9 +13,9 @@ export default new Router({
       component: Main
     },
     {
-      path: '/settings/:id',
-      name: 'ImageSettings',
-      component: ImageSettings,
+      path: '/preview',
+      name: 'Preview',
+      component: Preview,
       props: true,
     }
   ],

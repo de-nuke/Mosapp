@@ -6,7 +6,7 @@ function upload(formData) {
     const url = `${BASE_URL}/api/image/`;
     return axios.post(url, formData)
         // get data
-        .then(x => x.data);
+        // .then(x => x.data);
         // add url field
         // .then(x => x.map(img => Object.assign({},
         //     img, { url: `${BASE_URL}/images/${img.id}` })));

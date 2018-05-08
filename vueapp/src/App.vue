@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <el-container>
-      <el-header></el-header>
+      <el-header>
+        <span style="font-size: 24px; color: #409EFF;">Mozapp - application to create mosaic from photos</span>
+      </el-header>
       <el-main>
         <router-view/>
       </el-main>
