@@ -33,6 +33,7 @@
                 type="success"
                 icon="el-icon-download"
                 :disabled="hasError"
+                @click="downloadImage"
               >Download</el-button>
             </el-col>
           </el-row>
@@ -54,7 +55,7 @@
 
 <script>
   import Vue from 'vue';
-  import {get_image_url} from './file-upload.service';
+  import {get_image_url, get_download_link } from './file-upload.service';
 
   export default Vue.extend({
     name: 'Preview',
@@ -66,6 +67,12 @@
         errorMessage: "",
         errorDescription: "",
         hasError: false
+      }
+    },
+
+    methods: {
+      downloadImage: function () {
+        window.open(get_download_link(this.id));
       }
     },
 

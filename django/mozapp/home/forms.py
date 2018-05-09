@@ -23,7 +23,7 @@ class ImageUploadForm(forms.Form):
 
     image = forms.ImageField()
     name = forms.CharField(max_length=100, required=False, initial=DEFAULT_NAME)
-    image_format = forms.ChoiceField(choices=[('png', 'PNG'), ('jpg', 'JPEG')], required=False, initial='png')
+    image_format = forms.ChoiceField(choices=[('png', 'PNG'), ('jpeg', 'JPEG')], required=False, initial='png')
     use_builtin_tile_images = forms.BooleanField(required=False, initial=USE_BUILTIN_TILE_IMAGES)
     apply_sepia = forms.BooleanField(required=False, initial=APPLY_SEPIA)
     apply_greyscale = forms.BooleanField(required=False, initial=APPLY_GREYSCALE)

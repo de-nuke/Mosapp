@@ -1,9 +1,13 @@
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .forms import ImageUploadForm
 from .image_processing.mosaic import create_mosaic
 from .models import MainImage
 from django.shortcuts import get_object_or_404
+from wsgiref.util import FileWrapper
+import mimetypes
+import os
+
 
 @require_http_methods(["POST"])
 def process_image(request, *args, **kwargs):
@@ -22,6 +26,7 @@ def process_image(request, *args, **kwargs):
         print(form.errors)
         return JsonResponse(form.errors, status=400)
 
+
 @require_http_methods(["GET"])
 def get_image_url(request, pk, *args, **kwargs):
     try:
@@ -36,3 +41,20 @@ def get_image_url(request, pk, *args, **kwargs):
             'status': 404,
             'message': "Image expired or doesn't exist"
         }, status=404)
+
+
+@require_http_methods(["GET"])
+def download_image(request, pk, *args, **kwargs):
+    try:
+        obj = MainImage.objects.get(pk=int(pk))
+        # wrapper = FileWrapper(open(obj.photo.file))
+        content_type = mimetypes.guess_type(obj.photo.name)
+        response = HttpResponse(obj.photo.file, content_type=content_type)
+        # response['Content-Length'] = os.path.getsize(obj.photo.file)
+        response['Content-Disposition'] = "attachment; filename={}".format(obj.photo.name)
+        return response
+    except MainImage.DoesNotExist:
+        return JsonResponse({
+            'status': 404,
+            'message': "Image expired or doesn't exist"
+        })

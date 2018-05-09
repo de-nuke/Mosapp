@@ -38,7 +38,7 @@
             <el-form-item label="Image format">
               <el-select v-model="form.image_format" placeholder="Please select output image format">
                 <el-option label="PNG" value="png"></el-option>
-                <el-option label="JPEG" value="jpg"></el-option>
+                <el-option label="JPEG" value="jpeg"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="Apply sepia effect">
