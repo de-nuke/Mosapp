@@ -1,12 +1,11 @@
 <template>
   <div>
-    <!--<router-link to="/preview/2">preview page</router-link>-->
     <el-row class="step">
       <el-col><span style="color:#909399;">Step 1. Choose image and settings</span></el-col>
     </el-row>
     <el-row type="flex" justify="space-around">
       <el-col :span="9">
-        <el-card>
+        <el-card :class="{'has-errors': inputErrors.length > 0}">
           <div slot="header" class="clearfix">
             <span style="color: #409EFF; font-weight: bold;">1. Image is required:</span>
           </div>
@@ -15,23 +14,15 @@
             <i v-else class="el-icon-picture-outline" style="font-size: 100px;"></i>
           </el-row>
           <el-row type="flex" justify="center">
-            <!--<form enctype="multipart/form-data" novalidate>-->
-              <input type="file" :name="uploadFieldName" @change="previewImage"
-                     accept="image/*" class="input-file">
-
-              <!--<el-upload-->
-                <!--ref="form"-->
-                <!--drag-->
-                <!--action=""-->
-                <!--:show-file-list="false"-->
-                <!--:on-change="previewImage"-->
-                <!--:auto-upload="false">-->
-                <!--&lt;!&ndash;<i class="el-icon-upload"></i>&ndash;&gt;-->
-                <!--<i class="el-icon-picture-outline" style="font-size: 100px;"></i>-->
-                <!--<div class="el-upload__text">Drop file here or <em>click to upload</em></div>-->
-                <!--<div class="el-upload__tip" slot="tip">jpg/png files with a size less than 500kb</div>-->
-              <!--</el-upload>-->
-            <!--</form>-->
+            <input type="file" :name="uploadFieldName" @change="previewImage"
+                   accept="image/*" class="input-file">
+          </el-row>
+          <el-row v-for="(error, idx) in inputErrors" :key="idx">
+            <el-alert
+              :title="error"
+              :closable="false"
+              type="error"
+            ></el-alert>
           </el-row>
         </el-card>
       </el-col>
@@ -39,7 +30,6 @@
         <el-card>
           <div slot="header" class="clearfix">
             <span style="color: #409EFF">2. Following settings are optional:</span>
-            <!--<el-button style="float: right; padding: 3px 0" type="text">Operation button</el-button>-->
           </div>
           <el-form ref="form" :model="form" label-width="200px">
             <el-form-item label="Output filename">
@@ -65,14 +55,10 @@
             </el-form-item>
             <el-form-item label="Upscale">
               <el-select v-model="form.enlargement" placeholder="You can upscale image to see better details of mosaic">
-                <el-option label="None" value="1"></el-option>
-                <el-option label="2x" value="2"></el-option>
-                <el-option label="3x" value="3"></el-option>
-                <el-option label="4x" value="4"></el-option>
-                <el-option label="5x" value="5"></el-option>
-                <el-option label="6x" value="6"></el-option>
-                <el-option label="7x" value="7"></el-option>
-                <el-option label="8x" value="8"></el-option>
+                <template v-for="i in 8">
+                  <el-option v-if="i==1" label="None" :value="i"></el-option>
+                  <el-option v-else :label="`${i}x`" :value="i"></el-option>
+                </template>>
               </el-select>
             </el-form-item>
             <el-form-item label="Square size">
@@ -84,7 +70,6 @@
               </el-slider>
             </el-form-item>
             <el-form-item label="Tiles per image dimension">
-              <!--<el-input-number v-model="form.tiles_per_image_dimension" :min="10" :max="1000"></el-input-number>-->
               <el-slider
                 v-model="form.tiles_per_image_dimension"
                 :min="10"
@@ -99,7 +84,6 @@
           </el-form>
         </el-card>
       </el-col>
-      <!--<el-col :span="1"></el-col>-->
     </el-row>
   </div>
 </template>
@@ -120,6 +104,7 @@
         imageFile: null,
         imageData: "",
         imageName: "",
+        inputErrors: [],
 
         form: {
           name: '',
@@ -143,6 +128,9 @@
           let reader = new FileReader();
           reader.onload = (e) => {
             this.imageData = e.target.result;
+            if(this.imageData.length){
+              this.inputErrors = [];
+            }
           };
           reader.readAsDataURL(input.files[0]);
         }
@@ -154,6 +142,9 @@
               let formData = new FormData();
               if(this.imageData.length > 0) {
                 formData.set('image', this.imageFile, this.imageName);
+              } else {
+                this.inputErrors.push("Image is required");
+                return false;
               }
               let fields = Object.keys(this.form);
               for(let field of fields){
@@ -175,6 +166,11 @@
                 console.log(data['pk']);
                 this.$router.push({name: 'Preview', params: {id: data['pk']}});
               }).catch(e => {
+                for(let field in e.response.data){
+                  for(let err of e.response.data[field]){
+                    this.inputErrors.push(err);
+                  }
+                }
                 loading.close();
                 console.log(e);
               })
@@ -212,6 +208,10 @@
 
   .el-select, .el-switch{
     width: 100%;
+  }
+
+  .has-errors {
+    border: 1px solid #F56C6C;
   }
 
   .step {
