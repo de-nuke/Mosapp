@@ -13,10 +13,6 @@ import os
 def process_image(request, *args, **kwargs):
     form = ImageUploadForm(request.POST, request.FILES or None)
     if form.is_valid():
-        # TODO: 3 opcje: efekt na koniec, efekt na wejsciowy obraz i kafelki, efekt na wejsciowy obraz tylko
-        # TODO: Enlargement - powiększanie obrazka, żeby kafelki były lepiej widoczne
-        # TODO: KDTree.
-
         mosaic_image = create_mosaic(**form.cleaned_data)
         obj = MainImage.objects.create(photo=mosaic_image)
         return JsonResponse({

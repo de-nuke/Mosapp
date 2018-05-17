@@ -15,7 +15,7 @@
           </el-row>
           <el-row type="flex" justify="center">
             <input type="file" :name="uploadFieldName" @change="previewImage"
-                   accept="image/*" class="input-file">
+                   accept="image/*" class="input-file" multiple>
           </el-row>
           <el-row v-for="(error, idx) in inputErrors" :key="idx">
             <el-alert
@@ -42,10 +42,10 @@
               </el-select>
             </el-form-item>
             <el-form-item label="Apply sepia effect">
-              <el-switch v-model="form.apply_sepia"></el-switch>
+              <el-switch v-model="form.apply_sepia" @change="sepia_changed"></el-switch>
             </el-form-item>
             <el-form-item label="Apply greyscale effect">
-              <el-switch v-model="form.apply_greyscale"></el-switch>
+              <el-switch v-model="form.apply_greyscale" @change="greyscale_changed"></el-switch>
             </el-form-item>
             <el-form-item label="Tile style">
               <el-select v-model="form.tile_style" placeholder="Select how tiles shoud be resized">
@@ -119,6 +119,14 @@
       }
     },
     methods: {
+      sepia_changed(value) {
+        if(value && this.form.apply_greyscale)
+          this.form.apply_greyscale = false;
+      },
+      greyscale_changed(value) {
+        if(value && this.form.apply_sepia)
+          this.form.apply_sepia = false;
+      },
       previewImage(event) {
         let input = event.target;
         if (input.files && input.files[0]) {
@@ -156,7 +164,7 @@
                 lock: true,
                 text: 'Your image is being processed...',
                 spinner: 'el-icon-setting',
-                background: 'rgba(250, 250, 250, 0.5)',
+                background: 'rgba(255, 255, 255, 0.5)',
                 customClass: 'my-loader',
               });
               upload(formData).then(r => {

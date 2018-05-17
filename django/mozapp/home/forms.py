@@ -36,11 +36,8 @@ class ImageUploadForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        optional_fields = [
-            'use_builtin_tile_images', 'apply_sepia', 'apply_greyscale',
-            'tile_style', 'enlargement', 'square_size', 'rows_number',
-            'columns_number', 'name', 'image_format',
-        ]
+        optional_fields = [field[0] for field in self.fields.items() if not field[1].required]
+
         for field in optional_fields:
             if field not in self._submitted_fields:
                 cleaned_data[field] = self.fields[field].initial

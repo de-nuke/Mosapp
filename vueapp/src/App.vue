@@ -1,8 +1,15 @@
 <template>
   <div id="app">
+    <el-breadcrumb separator=">">
+          <el-breadcrumb-item v-if="$route.fullPath.indexOf('/preview/') >= 0"
+                              :to="{ path: '/' }">Homepage</el-breadcrumb-item>
+          <el-breadcrumb-item v-if="$route.fullPath.indexOf('/preview/') >= 0">Preview</el-breadcrumb-item>
+    </el-breadcrumb>
     <el-container>
       <el-header>
-        <span style="font-size: 24px; color: #409EFF;">Mozapp - application to create mosaic from photos</span>
+        <span style="font-size: 24px; color: #409EFF;">
+          <a class="logo-link" href="/">Mozapp - application to create mosaic from photos</a>
+        </span>
       </el-header>
       <el-main>
         <transition name="slide-fade" mode="out-in">
@@ -30,9 +37,11 @@ export default Vue.extend({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+
+}
+.el-container {
   margin-top: 40px;
 }
-
 .slide-fade-enter-active {
   transition: all .2s ease-in;
 }
@@ -43,5 +52,9 @@ export default Vue.extend({
 /* .slide-fade-leave-active below version 2.1.8 */ {
   transform: translateX(100px);
   opacity: 0;
+}
+.logo-link {
+  text-decoration: none;
+  color: inherit;
 }
 </style>

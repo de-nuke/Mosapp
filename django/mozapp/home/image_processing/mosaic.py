@@ -1,12 +1,12 @@
 from PIL import Image
 import numpy as np
-
+from scipy.spatial import KDTree
 from django.core.files.storage import FileSystemStorage
 import random
 from .utils import to_django_file, resize
 from .default_values_contants import *
 from .effects import apply_effects
-
+from multiprocessing import Pool
 
 def get_builtin_images(images_dir, n=None):
     fs = FileSystemStorage()
@@ -68,12 +68,13 @@ def split_image(image, dims, sizes):
     return imgs
 
 
-def get_default_sizes(img, col_num, row_num, _option=None, _square_tile_size=None, _tiles_per_image_dimension=None):
+def get_default_sizes(img, col_num, row_num, _option=None, _square_tile_size=None, _tiles_per_image_dimension=None, enlargement=1):
     square_tile_size = _square_tile_size or DEFAULT_SQUARE_TILE_SIZE
     option = _option or DEFAULT_OPTION
     tiles_per_image_dimension = _tiles_per_image_dimension or DEFAULT_TILES_PER_IMAGE_DIMENSION
 
     if option == SQUARE_TILE:
+        results = ()
         if not col_num and not row_num:
             c = img.size[0] // square_tile_size
             r = img.size[1] // square_tile_size
@@ -81,24 +82,29 @@ def get_default_sizes(img, col_num, row_num, _option=None, _square_tile_size=Non
                 c += 1
             if img.size[1] % square_tile_size:
                 r += 1
-            return (c, r), (square_tile_size, square_tile_size)
+            results = (c, r), (square_tile_size, square_tile_size)
         elif not col_num and row_num:
             h = img.size[1] // row_num
-            return (img.size[0] // h, row_num), (h, h)
+            results = (img.size[0] // h, row_num), (h, h)
         elif col_num and not row_num:
             w = img.size[0] // col_num
-            return (col_num, img.size[1] // w), (w, w)
+            results = (col_num, img.size[1] // w), (w, w)
         else:
-            return (col_num, row_num), (img.size[0] // col_num, img.size[1] // row_num)
+            results = (col_num, row_num), (img.size[0] // col_num, img.size[1] // row_num)
+        
+        return (results[0][0] // enlargement, results[0][1] // enlargement), (results[1][0] * enlargement, results[1][0] * enlargement)
     if option == TILE_AS_MAIN_IMAGE:
+        results = ()
         if not col_num and not row_num:
-            return ((tiles_per_image_dimension, tiles_per_image_dimension),
+            results = ((tiles_per_image_dimension, tiles_per_image_dimension),
                     (img.size[0] // tiles_per_image_dimension, img.size[1] // tiles_per_image_dimension))
         elif not (col_num and row_num):
-            return ((col_num or row_num, col_num or row_num),
+            results = ((col_num or row_num, col_num or row_num),
                     (img.size[0] // (col_num or row_num), img.size[0] // (col_num or row_num)))
         else:
-            return (col_num, row_num), (img.size[0] // col_num, img.size[1] // row_num)
+            results = (col_num, row_num), (img.size[0] // col_num, img.size[1] // row_num)
+        
+        return results
 
 
 def best_match(target_info, tile_infos):
@@ -150,41 +156,45 @@ def create_mosaic(image, **kwargs):
     use_builtin_tile_images = kwargs.get('use_builtin_tile_images', USE_BUILTIN_TILE_IMAGES)
     square_tile_size = kwargs.get('square_size', DEFAULT_SQUARE_TILE_SIZE)
     tiles_per_image_dimension = kwargs.get('tiles_per_image_dimension', DEFAULT_TILES_PER_IMAGE_DIMENSION)
-
-    # TODO: jeszcze jakies ?
+    enlargement = int(kwargs.get('enlargement', DEFAULT_ENLARGEMENT))
 
     img = Image.open(image)
-    img = apply_effects(img, apply_sepia=apply_sepia, apply_greyscale=apply_greyscale)
-
+    img = img.resize((img.size[0]*enlargement, img.size[1]*enlargement), Image.ANTIALIAS)
     dims, sizes = get_default_sizes(
         img=img,
         col_num=col_num,
         row_num=row_num,
         _option=option,
         _square_tile_size=square_tile_size,
-        _tiles_per_image_dimension=tiles_per_image_dimension
+        _tiles_per_image_dimension=tiles_per_image_dimension,
+        enlargement=enlargement
     )
 
     target_images = split_image(img, dims, sizes)
-
     if use_builtin_tile_images:
         tile_images = get_builtin_images('tile_images', n=400)
     else:
         tile_images = get_user_images()
 
     for i in range(len(tile_images)):
-        tile_images[i] = apply_effects(tile_images[i], apply_sepia=apply_sepia, apply_greyscale=apply_greyscale)
-        tile_images[i] = resize(tile_images[i], sizes, option=option)
-
+         tile_images[i] = resize(tile_images[i], sizes, option=option)
+    
+    #pool = Pool(20)
+    #tile_images = pool.starmap(resize, zip(tile_images, [sizes]*len(tile_images), [option]*len(tile_images)))
+    
     tile_images_infos = [get_image_info(img) for img in tile_images]
     target_images_infos = [get_image_info(img) for img in target_images]
-
+    
     output_images = []
-    for target_image_info in target_images_infos:
-        best = best_match(target_image_info, tile_images_infos)
-        output_images.append(best['image'])
-
+    tile_avgs = [x['average_rgb'] for x in tile_images_infos]
+    target_avgs = [x['average_rgb'] for x in target_images_infos]
+    arr = np.array(tile_avgs)
+    tree = KDTree(arr, arr.shape[0]+1)
+    for x in target_avgs:
+        dist, ndx = tree.query([x], k=1)
+        output_images.append(tile_images_infos[ndx[0]]['image'])
+    
     output_size = (dims[0] * sizes[0], dims[1] * sizes[1])
     mosaic_image = create_image_grid(output_images, dims, sizes, output_size)
-
+    mosaic_image = apply_effects(mosaic_image, apply_sepia=apply_sepia, apply_greyscale=apply_greyscale)
     return to_django_file(mosaic_image, '{}.{}'.format(name, image_format))
